@@ -1,11 +1,5 @@
-# import pygame
 from functools import cmp_to_key
 
-
-# from win32api import GetSystemMetrics
-
-
-# from rect import Button,
 def compare(a, b):
     if a[0] < b[0]:
         return -1
@@ -31,8 +25,6 @@ def scanline(a, x):
 
 
 def run():
-    # pygame.init()
-    # screen = pygame.display.set_mode((GetSystemMetrics(0), GetSystemMetrics(1)), pygame.FULLSCREEN)
     print('Введите число отрезков:')
     n = int(input())
     print('Введите каждую пару в виде пары чисел: начало, конец')
