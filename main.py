@@ -2,18 +2,16 @@ from functools import cmp_to_key
 
 
 def compare(a, b):
-    if a[0] < b[0]:
+    if a[0] < b[0] or (a[0] == b[0] and a[1] > b[1]):
         return -1
-    if a[0] > b[0]:
-        return 1
-    if a[1] > b[1]:
-        return -1
-    if a[1] < b[1]:
+    if a[0] > b[0] or (a[0] == b[0] and a[1] < b[1]):
         return 1
     return 0
 
 
-def scanline(a, x):
+def scanline(_a, _x):
+    a = _a.copy()
+    x = _x.copy()
     a.extend([(x[i], 0, i) for i in range(len(x))])
     ans = [0 for _ in x]
     a.sort(key=cmp_to_key(compare))
@@ -41,6 +39,7 @@ def run():
     print(f'Ответ: ')
     for ans in scanline(a, x):
         print(ans, end=' ')
+    print(a)
 
 
 if __name__ == '__main__':
