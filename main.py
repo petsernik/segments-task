@@ -1,5 +1,6 @@
 from functools import cmp_to_key
 
+
 def compare(a, b):
     if a[0] < b[0]:
         return -1
@@ -27,7 +28,7 @@ def scanline(a, x):
 def run():
     print('Введите число отрезков:')
     n = int(input())
-    print('Введите каждую пару в виде пары чисел: начало, конец')
+    print('Введите каждый отрезрок в виде пары чисел: начало, конец')
     a = list([0 for _ in range(2 * n)])
     for j in range(n):
         s = list(map(int, input().split()))
