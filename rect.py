@@ -18,8 +18,14 @@ class Rect:
     def size(self):
         return self.rect[2], self.rect[3]
 
+    def get_size(self):
+        return self.rect[2], self.rect[3]
+
+    def get_rect(self):
+        return self.rect
+
     def upd_pos(self, x, y):
-        self.rect[0], self.rect[1] = x, y
+        self.rect = (x, y, self.rect[2], self.rect[3])
 
     def upd_rect(self, x, y, w, h):
         self.rect = (x, y, w, h)
@@ -56,9 +62,9 @@ class Button(Rect):
     def collide_point(self, x, y):
         return not self.hidden and super().collide_point(x, y)
 
-    def blit(self, screen):
+    def blit(self):
         if not self.hidden:
-            screen.blit(self.image, self.rect)
+            pygame.display.get_surface().blit(self.image, self.rect)
 
     def action(self, as_btn=True):
         if (self.active and not self.hidden) or not as_btn:
@@ -85,17 +91,18 @@ class TextButton(Rect):
 
 
 class TextBox(Rect):
-    def __init__(self, render_text):
+    def __init__(self, render_text, input_box=None):
         super().__init__()
         self.text = render_text
         self.rect = list(render_text.get_rect())
         self.hidden = False
         self.active = False
         self.__action = lambda: None
+        self.input_box = input_box
 
 
 class InputBox(Rect):
-    def __init__(self, pos=(10, 10), size=(200, 200)):
+    def __init__(self, pos=(0, 0), size=(100, 100)):
         super().__init__((pos[0], pos[1], size[0], size[1]))
         s = '01234567890qwertyuiopasdfghjklzxcvbnmёйцукенгшщзхъфывапролджэячсмитьбю '
         self.allow_keys = set(s)
