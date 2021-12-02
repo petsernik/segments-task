@@ -9,14 +9,17 @@ def compare(a, b):
     return 0
 
 
-def scanline(_a, _x):
-    a = _a.copy()
-    x = _x.copy()
-    a.extend([(x[i], 0, i) for i in range(len(x))])
+def scanline(a, x):
+    """   scanline-algorithm
+
+    :param a: ends of the segments
+    :param x: question-points
+    :return: answers for question-points"""
+    s = a + [(x[i], 0, i) for i in range(len(x))]
+    s.sort(key=cmp_to_key(compare))
     ans = [0 for _ in x]
-    a.sort(key=cmp_to_key(compare))
     cur = 0
-    for event in a:
+    for event in s:
         cur += event[1]
         if event[1] == 0:
             ans[event[2]] = cur
