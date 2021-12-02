@@ -1,4 +1,8 @@
+import pygame
+from win32api import GetSystemMetrics
 from functools import cmp_to_key
+from rect import InputBox, InputNumBox, TextBox
+from keyboard import KeyboardKey
 
 
 def compare(a, b):
@@ -45,5 +49,26 @@ def run():
     print(a)
 
 
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((GetSystemMetrics(0), GetSystemMetrics(1)), pygame.FULLSCREEN)
+
+    running = True
+    keyboard = dict((c, KeyboardKey()) for c in KeyboardKey.all_keys())
+    while running:
+        screen.fill((255, 255, 255))
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE or event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN and event.unicode in keyboard:
+                keyboard[event.unicode].down()
+            if event.type == pygame.KEYUP and event.unicode in keyboard:
+                keyboard[event.unicode].up()
+        tb = TextBox('Введите конец первого отрезка:', (100, 100), InputNumBox())
+        tb.action()
+        running = False
+        pygame.display.flip()
+
+
 if __name__ == '__main__':
-    run()
+    main()
