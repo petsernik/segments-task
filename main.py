@@ -39,11 +39,12 @@ def run():
     running = True
     segments = []
     points = []
+    pos = (width // 5, height // 4)
 
     def enter_segment():
         nonlocal segments
         screen.fill(background_color)
-        tb1 = TextBox('Введите начало:', (width // 5, height // 4), input_num=True)
+        tb1 = TextBox('Введите начало:', pos, input_num=True)
         tb2 = TextBox('Введите конец:', tb1.bottom_pos(), input_num=True)
         segments.append((int(tb1.action()), int(tb2.action())))
         screen.fill(background_color)
@@ -51,13 +52,13 @@ def run():
     def enter_point():
         nonlocal points
         screen.fill(background_color)
-        tb = TextBox('Введите точку:', (width // 5, height // 4), input_num=True)
+        tb = TextBox('Введите точку:', pos, input_num=True)
         points.append(int(tb.action()))
         screen.fill(background_color)
 
-    seg = int(TextBox('Кол-во отрезков:', (width // 5, height // 4), input_num=True).action())
+    seg = int(TextBox('Кол-во отрезков:', pos, input_num=True).action())
     screen.fill(background_color)
-    pt = int(TextBox('Кол-во точек:', (width // 5, height // 4), input_num=True).action())
+    pt = int(TextBox('Кол-во точек:', pos, input_num=True).action())
     screen.fill(background_color)
     for _ in range(seg):
         enter_segment()
@@ -70,7 +71,10 @@ def run():
     tb_pt.blit()
     tb_sl.blit()
     pygame.display.flip()
-    pygame.time.wait(7000)
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE or event.type == pygame.QUIT:
+                running = False
 
 
 def main():
