@@ -19,10 +19,11 @@ def scanline(a, x):
     :param a: ends of the segments
     :param x: question-points
     :return: answers for question-points"""
-    s = a + [(x[i], 0, i) for i in range(len(x))]
+    s = [(a[i >> 1][i & 1], 1 - 2 * (i & 1), 0) for i in range(2 * len(a))] + [(x[i], 0, i) for i in range(len(x))]
     s.sort(key=cmp_to_key(compare))
     ans = [0 for _ in x]
     cur = 0
+    TextBox(f's = {s}', (0, 0)).blit(2000)
     for event in s:
         cur += event[1]
         if event[1] == 0:
@@ -48,38 +49,47 @@ def run():
     #     print(ans, end=' ')
 
     pygame.init()
+    background_color = (255, 255, 255)
     screen = pygame.display.set_mode((GetSystemMetrics(0), GetSystemMetrics(1)), pygame.FULLSCREEN)
     running = True
     segments = []
+    points = []
 
     def enter_seg():
         nonlocal segments
-        screen.fill((255, 255, 255))
+        screen.fill(background_color)
         tb1 = TextBox('Введите начало:', (GetSystemMetrics(0) // 5, GetSystemMetrics(1) // 4), input_num=True)
         tb2 = TextBox('Введите конец:', tb1.bottom_pos(), input_num=True)
-        wait = 600
-
-        def tb_quit():
-            TextBox('Отменено!', tb2.bottom_pos()).blit(wait)
-            return True
-
         tb1.action()
         if tb1.quit:
-            return tb_quit()
+            return True
         tb2.action()
         if tb2.quit:
-            return tb_quit()
+            return True
         segments.append((int(tb1.get_input()), int(tb2.get_input())))
-        TextBox('Успешно!', tb2.bottom_pos()).blit()
-        pygame.display.flip()
-        screen.fill((255, 255, 255))
-        pygame.time.wait(wait)
+        screen.fill(background_color)
+
+    def enter_point():
+        nonlocal points
+        screen.fill(background_color)
+        tb = TextBox('Введите точку:', (GetSystemMetrics(0) // 5, GetSystemMetrics(1) // 4), input_num=True)
+        tb.action()
+        if tb.quit:
+            return True
+        points.append(int(tb.get_input()))
+        screen.fill(background_color)
 
     enter_seg()
     enter_seg()
-    TextBox(f'до сортировки: {str(segments)}', (0, 0)).blit(2000)
-    segments.sort()
-    TextBox(f'после сортировки: {str(segments)}', (0, 0)).blit(2000)
+    enter_point()
+    tb_seg = TextBox(f'{segments}', (0, 0))
+    tb_pt = TextBox(f'{points}', tb_seg.bottom_pos())
+    tb_sl = TextBox(f'{scanline(segments, points)}', tb_pt.bottom_pos())
+    tb_seg.blit()
+    tb_pt.blit()
+    tb_sl.blit()
+    pygame.display.flip()
+    pygame.time.wait(7000)
 
 
 def main():
