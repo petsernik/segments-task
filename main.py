@@ -33,38 +33,36 @@ def scanline(a, x):
 def run():
     pygame.init()
     background_color = (255, 255, 255)
-    screen = pygame.display.set_mode((GetSystemMetrics(0), GetSystemMetrics(1)), pygame.FULLSCREEN)
+    width, height = GetSystemMetrics(0), GetSystemMetrics(1)
+    screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
+    screen.fill(background_color)
     running = True
     segments = []
     points = []
 
-    def enter_seg():
+    def enter_segment():
         nonlocal segments
         screen.fill(background_color)
-        tb1 = TextBox('Введите начало:', (GetSystemMetrics(0) // 5, GetSystemMetrics(1) // 4), input_num=True)
+        tb1 = TextBox('Введите начало:', (width // 5, height // 4), input_num=True)
         tb2 = TextBox('Введите конец:', tb1.bottom_pos(), input_num=True)
-        tb1.action()
-        if tb1.quit:
-            return True
-        tb2.action()
-        if tb2.quit:
-            return True
-        segments.append((int(tb1.get_input()), int(tb2.get_input())))
+        segments.append((int(tb1.action()), int(tb2.action())))
         screen.fill(background_color)
 
     def enter_point():
         nonlocal points
         screen.fill(background_color)
-        tb = TextBox('Введите точку:', (GetSystemMetrics(0) // 5, GetSystemMetrics(1) // 4), input_num=True)
-        tb.action()
-        if tb.quit:
-            return True
-        points.append(int(tb.get_input()))
+        tb = TextBox('Введите точку:', (width // 5, height // 4), input_num=True)
+        points.append(int(tb.action()))
         screen.fill(background_color)
 
-    enter_seg()
-    enter_seg()
-    enter_point()
+    seg = int(TextBox('Кол-во отрезков:', (width // 5, height // 4), input_num=True).action())
+    screen.fill(background_color)
+    pt = int(TextBox('Кол-во точек:', (width // 5, height // 4), input_num=True).action())
+    screen.fill(background_color)
+    for _ in range(seg):
+        enter_segment()
+    for _ in range(pt):
+        enter_point()
     tb_seg = TextBox(f'{segments}', (0, 0))
     tb_pt = TextBox(f'{points}', tb_seg.bottom_pos())
     tb_sl = TextBox(f'{scanline(segments, points)}', tb_pt.bottom_pos())

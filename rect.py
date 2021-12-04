@@ -1,4 +1,5 @@
 import pygame
+import sys
 from keyboard import Keyboard
 
 
@@ -161,6 +162,7 @@ class TextBox(Rect):
     def action(self):
         if self.have_input:
             self.input_box.action()
+        return self.input_box.text
 
     def input_init(self):
         x, y, w, h = self.rect
@@ -297,12 +299,11 @@ class InputNumBox(InputBox):
         try:
             int(self.text)
         except ValueError:
+            self.text = '0'
+            self.blit()
+            blit_text(pygame.display.get_surface(), self.text, self.pos(), self.font, rect=self.rect)
             if not self.parent.quit:
-                self.text = '0'
-                self.blit()
-                blit_text(pygame.display.get_surface(), self.text, self.pos(), self.font, rect=self.rect)
                 pygame.display.flip()
-        return self.parent.quit
 
     def can_add(self):
         return len(self.text) < self.max_len + self.text.startswith('-')
