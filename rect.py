@@ -147,8 +147,15 @@ class TextBox(Rect):
             self.create_input_num()
         self.quit = False
 
-    def blit(self):
+    def blit(self, time=None):
         pygame.display.get_surface().blit(self.text, self.rect)
+        if time is not None:
+            pygame.display.flip()
+            pygame.time.wait(time)
+            self.clear()
+
+    def clear(self):
+        pygame.draw.rect(pygame.display.get_surface(), (255, 255, 255), self.rect)
 
     def action(self):
         if self.input_box is not None:
@@ -215,8 +222,7 @@ class InputBox(Rect):
         self.blit()
 
     def init(self):
-        x, y, z, t = self.parent.rect
-        pygame.draw.rect(pygame.display.get_surface(), (255, 255, 255), (x, y, z, t))
+        self.parent.clear()
 
     def action(self, change=False, font=None, event_func=None, using_lc_motion=False):
         if not change:

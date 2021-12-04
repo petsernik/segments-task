@@ -31,21 +31,55 @@ def scanline(a, x):
 
 
 def run():
-    print('Введите число отрезков:')
-    n = int(input())
-    print('Введите каждый отрезок в виде пары чисел: начало, конец')
-    a = list([0 for _ in range(2 * n)])
-    for j in range(n):
-        s = list(map(int, input().split()))
-        a[2 * j] = (s[0], 1)
-        a[2 * j + 1] = (s[1], -1)
-    print('Введите число точек:')
-    n = int(input())
-    print('Введите точки (по одному числу):')
-    x = [int(input()) for _ in range(n)]
-    print(f'Ответ: ')
-    for ans in scanline(a, x):
-        print(ans, end=' ')
+    # print('Введите число отрезков:')
+    # n = int(input())
+    # print('Введите каждый отрезок в виде пары чисел: начало, конец')
+    # a = list([0 for _ in range(2 * n)])
+    # for j in range(n):
+    #     s = list(map(int, input().split()))
+    #     a[2 * j] = (s[0], 1)
+    #     a[2 * j + 1] = (s[1], -1)
+    # print('Введите число точек:')
+    # n = int(input())
+    # print('Введите точки (по одному числу):')
+    # x = [int(input()) for _ in range(n)]
+    # print(f'Ответ: ')
+    # for ans in scanline(a, x):
+    #     print(ans, end=' ')
+
+    pygame.init()
+    screen = pygame.display.set_mode((GetSystemMetrics(0), GetSystemMetrics(1)), pygame.FULLSCREEN)
+    running = True
+    segments = []
+
+    def enter_seg():
+        nonlocal segments
+        screen.fill((255, 255, 255))
+        tb1 = TextBox('Введите первое число:', (GetSystemMetrics(0) // 5, GetSystemMetrics(1) // 4), input_num=True)
+        tb2 = TextBox('Введите второе число:', tb1.bottom_pos(), input_num=True)
+        tb1.action()
+        if tb1.quit:
+            TextBox('Отменено!', tb2.bottom_pos()).blit()
+            pygame.display.flip()
+            pygame.time.wait(1000)
+            return True
+        tb2.action()
+        if tb2.quit:
+            TextBox('Отменено!', tb2.bottom_pos()).blit()
+            pygame.display.flip()
+            pygame.time.wait(1000)
+            return True
+        segments.append((int(tb1.get_input()), int(tb2.get_input())))
+        TextBox('Успешно!', tb2.bottom_pos()).blit()
+        pygame.display.flip()
+        screen.fill((255, 255, 255))
+        pygame.time.wait(1000)
+
+    enter_seg()
+    enter_seg()
+    TextBox(f'до сортировки: {str(segments)}', (0, 0)).blit(2000)
+    segments.sort()
+    TextBox(f'после сортировки: {str(segments)}', (0, 0)).blit(2000)
 
 
 def main():
@@ -66,7 +100,6 @@ def main():
         tb0 = TextBox('Экран обновляется через 4 секунды после вывода суммы', (200, 200))
         tb1 = TextBox('Введите первое число:', tb0.bottom_pos(), input_num=True)
         tb2 = TextBox('Введите второе число:', tb1.bottom_pos(), input_num=True)
-        tb0.blit()
         tb1.action()
         if tb1.quit:
             break
@@ -82,4 +115,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    run()
