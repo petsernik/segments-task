@@ -139,7 +139,7 @@ class TextBox(Rect):
     def create_input(self):
         if self.input_box is None:
             x, y, w, h = self.rect
-            self.input_box = InputBox()
+            self.input_box = InputBox(size=(w, h))
             self.input_init()
 
     def create_input_num(self):
@@ -156,7 +156,7 @@ class InputBox(Rect):
                             '1234567890'
                             '+-*/='
                             '<>'
-                            '~`!@#$%^&|\\/,. ', parent=None):
+                            '~`!?\':;[]{}\"@#$%^&|\\/,. ', parent=None):
         super().__init__([pos[0], pos[1], size[0], size[1]])
         self.allow_keys = set(allow_keys)
         self.text = ''
@@ -237,7 +237,7 @@ class InputBox(Rect):
                 self.text += ' '
             if keyboard['backspace'].get_tick(0.03):
                 self.text = self.text[:-1]
-            blit_text(pygame.display.get_surface(), self.text, self.pos(), font, allow_exceeding=True)
+            blit_text(pygame.display.get_surface(), self.text, self.pos(), font, rect=self.rect)
             pygame.display.flip()
 
 
@@ -266,10 +266,14 @@ class InputNumBox(InputBox):
         return len(self.text) < self.max_len + self.text.startswith('-')
 
 
-def blit_text(surface, text, pos, font, color='black', allow_exceeding=True, with_blit=True):
+def blit_text(surface, text, _pos, font, color='black', allow_exceeding=True, with_blit=True, rect=None):
     lines = [word.split(' ') for word in text.splitlines()]  # 2D array where each row is a list of words.
     space = font.size(' ')[0]  # The width of a space.
+    pos = _pos
     x0, y0, width, height = surface.get_rect()
+    if rect is not None:
+        x0, y0, width, height = rect
+        pos = [0, 0]
     max_x, max_y = x0 + width, y0 + height
     x, y = x0 + pos[0], y0 + pos[1]
     for line in lines:
