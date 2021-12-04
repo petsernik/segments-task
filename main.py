@@ -64,8 +64,11 @@ def main():
                 keyboard[event.unicode].down()
             if event.type == pygame.KEYUP and event.unicode in keyboard:
                 keyboard[event.unicode].up()
-        tb = TextBox('Введите конец первого отрезка:', (100, 100), InputNumBox())
-        tb.action()
+        tb1 = TextBox('Введите начало отрезка:', (100, 100), InputNumBox())
+        tb2 = TextBox('Введите конец отрезка:', (100, 300), InputNumBox())
+        tb1.action()
+        tb2.action()
+        tb1.action()
         running = False
         pygame.display.flip()
 

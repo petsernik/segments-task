@@ -135,17 +135,16 @@ class InputBox(Rect):
                             '~`!@#$%^&|\\/,. ', parent=None):
         super().__init__((pos[0], pos[1], size[0], size[1]))
         self.allow_keys = set(allow_keys)
-        self.active = True
         self.text = ''
-        self.max_len = 1000
+        self.max_len = 1000000
         self.parent = parent
 
-    @staticmethod
-    def blit(s, pos, area=None):
-        if area is None:
-            pygame.display.get_surface().blit(s, pos)
-        else:
-            pygame.display.get_surface().blit(s, pos, area)
+    def blit(self, color=(9, 255, 255)):
+        screen = pygame.display.get_surface()
+        x0, y0 = self.pos()
+        x1, y1 = x0 + self.size()[0] - 1, y0 + self.size()[1] - 1
+        pygame.draw.rect(screen, color, self.rect)
+        pygame.draw.aalines(screen, 'black', True, [(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
 
     def add_key(self, key):
         if self.can_add():
@@ -154,29 +153,46 @@ class InputBox(Rect):
     def can_add(self):
         return len(self.text) < self.max_len
 
-    def action(self, font=None, event_func=None):
-        keyboard = Keyboard.keys
-        mouse = {'lc': False, 'rc': False}
+    def lc_motion(self, event):
+        self.init()
+        self.parent.rect[0] += event.rel[0]
+        self.parent.rect[1] += event.rel[1]
+        self.rect[0] += event.rel[0]
+        self.rect[1] += event.rel[1]
+        self.parent.blit()
+        self.blit()
+
+    def init(self):
+        x, y, z, t = self.parent.rect
+        _, _, dz, dt = self.rect
+        z += dz
+        t += dt
+        pygame.draw.rect(pygame.display.get_surface(), (255, 255, 255), (x, y, z, t))
+
+    def action(self, change=False, font=None, event_func=None, using_lc_motion=False):
+        if not change:
+            self.text = ''
         if font is None:
             font = pygame.font.Font(None, 48)
-        screen = pygame.display.get_surface()
-        while self.active:
-            screen.fill((255, 255, 255))
-            x0, y0 = self.pos()
-            x1, y1 = x0 + self.size()[0], y0 + self.size()[1]
-            pygame.draw.rect(screen, (9, 255, 255), self.rect)
+
+        running = True
+        keyboard = Keyboard.keys
+        mouse = {'lc': False, 'rc': False}
+
+        while running:
+            self.init()
             self.parent.blit()
-            pygame.draw.aalines(screen, 'black', True, [(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
+            self.blit()
             for event in pygame.event.get():
                 if event_func is not None:
                     event_func(self, event)
                 Keyboard.update_key(event)
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.text = ''
-                    self.active = False
+                    running = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
-                        self.active = False
+                        running = False
                     elif event.key == pygame.K_BACKSPACE:
                         self.text = self.text[:-1]
                     elif event.unicode in self.allow_keys:
@@ -187,13 +203,11 @@ class InputBox(Rect):
                 if event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 1:
                         mouse['lc'] = False
-                if mouse['lc'] and event.type == pygame.MOUSEMOTION and \
+                if using_lc_motion and mouse['lc'] and event.type == pygame.MOUSEMOTION and \
                         (self.parent is not None and self.parent.collide_point(event.pos[0], event.pos[1]) or
                          self.collide_point(event.pos[0], event.pos[1])):
-                    self.parent.rect[0] += event.rel[0]
-                    self.parent.rect[1] += event.rel[1]
-                    self.rect[0] += event.rel[0]
-                    self.rect[1] += event.rel[1]
+                    self.lc_motion(event)
+
             for k in keyboard:
                 if k in self.allow_keys and keyboard[k].get_tick():  # stupid err: don't use tick by not allowed
                     self.add_key(k)
@@ -201,7 +215,7 @@ class InputBox(Rect):
                 self.text += ' '
             if keyboard['backspace'].get_tick(0.03):
                 self.text = self.text[:-1]
-            blit_text(self, self.text, (0, 0), font, allow_exceeding=True)
+            blit_text(pygame.display.get_surface(), self.text, self.pos(), font, allow_exceeding=True)
             pygame.display.flip()
 
 
@@ -219,11 +233,11 @@ class InputNumBox(InputBox):
                 else:
                     self.text = '-' + self.text
 
-    def action(self, font=None, event_func=None):
+    def action(self, change=False, font=None, event_func=None, using_lc_motion=False):
         if event_func is None:
-            super(InputNumBox, self).action(font, InputNumBox.mul_by_minus)
+            super(InputNumBox, self).action(change, font, InputNumBox.mul_by_minus, using_lc_motion)
         else:
-            super(InputNumBox, self).action(font, event_func)
+            super(InputNumBox, self).action(change, font, event_func, using_lc_motion)
 
     def can_add(self):
         return len(self.text) < self.max_len + self.text.startswith('-')
