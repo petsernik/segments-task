@@ -35,6 +35,12 @@ class Rect:
     def upd_rect(self, x, y, w, h):
         self.rect = [x, y, w, h]
 
+    def top_pos(self):
+        return self.rect[0], self.rect[1] - self.rect[3]
+
+    def bottom_pos(self):
+        return self.rect[0], self.rect[1] + self.rect[3]
+
     def collide_point(self, x, y):
         return self.rect[0] <= x <= self.rect[0] + self.rect[2] \
                and self.rect[1] <= y <= self.rect[1] + self.rect[3]
@@ -103,7 +109,7 @@ class TextButton(Rect):
 
 
 class TextBox(Rect):
-    def __init__(self, render_text, pos, input_box=None):
+    def __init__(self, render_text, pos, input_str=False, input_num=False):
         super().__init__()
         rt = render_text
         if isinstance(rt, str):
@@ -111,11 +117,11 @@ class TextBox(Rect):
         self.text = rt
         self.rect = list(rt.get_rect())
         self.upd_pos(pos)
-        self.input_box = input_box
-        if self.input_box is not None:
-            x, y, w, h = self.rect
-            self.input_box.upd_rect(x, y + h, w, h)
-            self.input_box.parent = self
+        self.input_box = None
+        if input_str:
+            self.create_input()
+        elif input_num:
+            self.create_input_num()
 
     def blit(self):
         pygame.display.get_surface().blit(self.text, self.rect)
@@ -123,6 +129,24 @@ class TextBox(Rect):
     def action(self):
         if self.input_box is not None:
             self.input_box.action()
+
+    def input_init(self):
+        x, y, w, h = self.rect
+        self.input_box.upd_pos(x + w + 10, y)
+        self.upd_rect(x, y, w + self.input_box.rect[2], h + self.input_box.rect[3])
+        self.input_box.parent = self
+
+    def create_input(self):
+        if self.input_box is None:
+            x, y, w, h = self.rect
+            self.input_box = InputBox()
+            self.input_init()
+
+    def create_input_num(self):
+        if self.input_box is None:
+            x, y, w, h = self.rect
+            self.input_box = InputNumBox(size=(w, h))
+            self.input_init()
 
 
 class InputBox(Rect):
@@ -133,11 +157,12 @@ class InputBox(Rect):
                             '+-*/='
                             '<>'
                             '~`!@#$%^&|\\/,. ', parent=None):
-        super().__init__((pos[0], pos[1], size[0], size[1]))
+        super().__init__([pos[0], pos[1], size[0], size[1]])
         self.allow_keys = set(allow_keys)
         self.text = ''
         self.max_len = 1000000
         self.parent = parent
+        self.font = pygame.font.Font(None, 48)
 
     def blit(self, color=(9, 255, 255)):
         screen = pygame.display.get_surface()
@@ -164,16 +189,13 @@ class InputBox(Rect):
 
     def init(self):
         x, y, z, t = self.parent.rect
-        _, _, dz, dt = self.rect
-        z += dz
-        t += dt
         pygame.draw.rect(pygame.display.get_surface(), (255, 255, 255), (x, y, z, t))
 
     def action(self, change=False, font=None, event_func=None, using_lc_motion=False):
         if not change:
             self.text = ''
         if font is None:
-            font = pygame.font.Font(None, 48)
+            font = self.font
 
         running = True
         keyboard = Keyboard.keys
@@ -220,9 +242,10 @@ class InputBox(Rect):
 
 
 class InputNumBox(InputBox):
-    def __init__(self):
-        super(InputNumBox, self).__init__(allow_keys='0123456789')
+    def __init__(self, pos=(0, 0), size=(0, 0), allow_keys='0123456789', parent=None):
+        super(InputNumBox, self).__init__(pos, size, allow_keys, parent)
         self.max_len = 7
+        self.rect[2] = (self.max_len + 2) * self.font.size('0')[0]
 
     @staticmethod
     def mul_by_minus(self, event):

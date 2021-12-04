@@ -33,7 +33,7 @@ def scanline(a, x):
 def run():
     print('Введите число отрезков:')
     n = int(input())
-    print('Введите каждый отрезрок в виде пары чисел: начало, конец')
+    print('Введите каждый отрезок в виде пары чисел: начало, конец')
     a = list([0 for _ in range(2 * n)])
     for j in range(n):
         s = list(map(int, input().split()))
@@ -64,11 +64,10 @@ def main():
                 keyboard[event.unicode].down()
             if event.type == pygame.KEYUP and event.unicode in keyboard:
                 keyboard[event.unicode].up()
-        tb1 = TextBox('Введите начало отрезка:', (100, 100), InputNumBox())
-        tb2 = TextBox('Введите конец отрезка:', (100, 300), InputNumBox())
+        tb1 = TextBox('Введите начало отрезка:', (100, 100), input_num=True)
+        tb2 = TextBox('Введите конец отрезка:', tb1.bottom_pos(), input_num=True)
         tb1.action()
         tb2.action()
-        tb1.action()
         running = False
         pygame.display.flip()
 
