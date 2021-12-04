@@ -140,12 +140,13 @@ class TextBox(Rect):
         self.text = rt
         self.rect = list(rt.get_rect())
         self.upd_pos(pos)
-        self.input_box = None
+        self.input_box = InputBox()
         if input_str:
             self.create_input()
         elif input_num:
             self.create_input_num()
         self.quit = False
+        self.have_input = input_str or input_num
 
     def blit(self, time=None):
         pygame.display.get_surface().blit(self.text, self.rect)
@@ -158,7 +159,7 @@ class TextBox(Rect):
         pygame.draw.rect(pygame.display.get_surface(), (255, 255, 255), self.rect)
 
     def action(self):
-        if self.input_box is not None:
+        if self.have_input:
             self.input_box.action()
 
     def input_init(self):
@@ -168,18 +169,17 @@ class TextBox(Rect):
         iw, ih = inbox.size()
         self.upd_rect(x, y, inbox.offset_x(x) + iw, inbox.offset_y(y) + ih)
         inbox.parent = self
+        self.have_input = True
 
     def create_input(self):
-        if self.input_box is None:
-            x, y, w, h = self.rect
-            self.input_box = InputBox(size=(w, h))
-            self.input_init()
+        x, y, w, h = self.rect
+        self.input_box = InputBox(size=(w, h))
+        self.input_init()
 
     def create_input_num(self):
-        if self.input_box is None:
-            x, y, w, h = self.rect
-            self.input_box = InputNumBox(size=(w, h))
-            self.input_init()
+        x, y, w, h = self.rect
+        self.input_box = InputNumBox(size=(w, h))
+        self.input_init()
 
     def get_input(self):
         return self.input_box.text

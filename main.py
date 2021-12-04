@@ -23,7 +23,6 @@ def scanline(a, x):
     s.sort(key=cmp_to_key(compare))
     ans = [0 for _ in x]
     cur = 0
-    TextBox(f's = {s}', (0, 0)).blit(2000)
     for event in s:
         cur += event[1]
         if event[1] == 0:
@@ -32,22 +31,6 @@ def scanline(a, x):
 
 
 def run():
-    # print('Введите число отрезков:')
-    # n = int(input())
-    # print('Введите каждый отрезок в виде пары чисел: начало, конец')
-    # a = list([0 for _ in range(2 * n)])
-    # for j in range(n):
-    #     s = list(map(int, input().split()))
-    #     a[2 * j] = (s[0], 1)
-    #     a[2 * j + 1] = (s[1], -1)
-    # print('Введите число точек:')
-    # n = int(input())
-    # print('Введите точки (по одному числу):')
-    # x = [int(input()) for _ in range(n)]
-    # print(f'Ответ: ')
-    # for ans in scanline(a, x):
-    #     print(ans, end=' ')
-
     pygame.init()
     background_color = (255, 255, 255)
     screen = pygame.display.set_mode((GetSystemMetrics(0), GetSystemMetrics(1)), pygame.FULLSCREEN)
