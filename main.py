@@ -64,12 +64,21 @@ def main():
                 keyboard[event.unicode].down()
             if event.type == pygame.KEYUP and event.unicode in keyboard:
                 keyboard[event.unicode].up()
-        tb1 = TextBox('Введите начало отрезка:', (100, 100), input_num=True)
-        tb2 = TextBox('Введите конец отрезка:', tb1.bottom_pos(), input_num=True)
+        tb1 = TextBox('Введите первое число:', (200, 200), input_num=True)
+        tb2 = TextBox('Введите второе число:', tb1.bottom_pos(), input_num=True)
         tb1.action()
+        if tb1.quit:
+            running = False
+            continue
         tb2.action()
-        running = False
+        if tb2.quit:
+            running = False
+            continue
+        tb3 = TextBox(f'Сумма чисел: {int(tb1.get_input()) + int(str(tb2.get_input()))}', tb2.bottom_pos(),
+                      input_str=True)
+        tb3.blit()
         pygame.display.flip()
+        pygame.time.wait(4000)
 
 
 if __name__ == '__main__':

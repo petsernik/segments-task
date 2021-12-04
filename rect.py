@@ -122,6 +122,7 @@ class TextBox(Rect):
             self.create_input()
         elif input_num:
             self.create_input_num()
+        self.quit = False
 
     def blit(self):
         pygame.display.get_surface().blit(self.text, self.rect)
@@ -147,6 +148,9 @@ class TextBox(Rect):
             x, y, w, h = self.rect
             self.input_box = InputNumBox(size=(w, h))
             self.input_init()
+
+    def get_input(self):
+        return self.input_box.text
 
 
 class InputBox(Rect):
@@ -211,6 +215,7 @@ class InputBox(Rect):
                 Keyboard.update_key(event)
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.text = ''
+                    self.parent.quit = True
                     running = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
@@ -261,6 +266,8 @@ class InputNumBox(InputBox):
             super(InputNumBox, self).action(change, font, InputNumBox.mul_by_minus, using_lc_motion)
         else:
             super(InputNumBox, self).action(change, font, event_func, using_lc_motion)
+        if self.text == '':
+            self.text = '0'
 
     def can_add(self):
         return len(self.text) < self.max_len + self.text.startswith('-')
