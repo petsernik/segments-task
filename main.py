@@ -1,7 +1,7 @@
 import pygame
 from win32api import GetSystemMetrics
 from functools import cmp_to_key
-from rect import InputBox, InputNumBox, TextBox
+from rect import TextBox
 from keyboard import KeyboardKey
 
 
@@ -55,25 +55,25 @@ def run():
     def enter_seg():
         nonlocal segments
         screen.fill((255, 255, 255))
-        tb1 = TextBox('Введите первое число:', (GetSystemMetrics(0) // 5, GetSystemMetrics(1) // 4), input_num=True)
-        tb2 = TextBox('Введите второе число:', tb1.bottom_pos(), input_num=True)
+        tb1 = TextBox('Введите начало:', (GetSystemMetrics(0) // 5, GetSystemMetrics(1) // 4), input_num=True)
+        tb2 = TextBox('Введите конец:', tb1.bottom_pos(), input_num=True)
+        wait = 600
+
+        def tb_quit():
+            TextBox('Отменено!', tb2.bottom_pos()).blit(wait)
+            return True
+
         tb1.action()
         if tb1.quit:
-            TextBox('Отменено!', tb2.bottom_pos()).blit()
-            pygame.display.flip()
-            pygame.time.wait(1000)
-            return True
+            return tb_quit()
         tb2.action()
         if tb2.quit:
-            TextBox('Отменено!', tb2.bottom_pos()).blit()
-            pygame.display.flip()
-            pygame.time.wait(1000)
-            return True
+            return tb_quit()
         segments.append((int(tb1.get_input()), int(tb2.get_input())))
         TextBox('Успешно!', tb2.bottom_pos()).blit()
         pygame.display.flip()
         screen.fill((255, 255, 255))
-        pygame.time.wait(1000)
+        pygame.time.wait(wait)
 
     enter_seg()
     enter_seg()
