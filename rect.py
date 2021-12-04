@@ -35,11 +35,34 @@ class Rect:
     def upd_rect(self, x, y, w, h):
         self.rect = [x, y, w, h]
 
+    def move(self, x, y=None):
+        if y is None:
+            self.rect[0] += x[0]
+            self.rect[1] += x[1]
+        else:
+            self.rect[0] += x
+            self.rect[1] += y
+
     def top_pos(self):
         return self.rect[0], self.rect[1] - self.rect[3] - 20
 
     def bottom_pos(self):
         return self.rect[0], self.rect[1] + self.rect[3] + 20
+
+    def offset(self, x, y):
+        return [self.x() - x, self.y() - y]
+
+    def offset_x(self, x):
+        return self.x() - x
+
+    def offset_y(self, y):
+        return self.y() - y
+
+    def x(self):
+        return self.rect[0]
+
+    def y(self):
+        return self.rect[1]
 
     def collide_point(self, x, y):
         return self.rect[0] <= x <= self.rect[0] + self.rect[2] \
@@ -133,9 +156,11 @@ class TextBox(Rect):
 
     def input_init(self):
         x, y, w, h = self.rect
-        self.input_box.upd_pos(x + w + 10, y)
-        self.upd_rect(x, y, w + self.input_box.rect[2], h)
-        self.input_box.parent = self
+        inbox = self.input_box
+        inbox.upd_pos(x + w + 10, y)
+        iw, ih = inbox.size()
+        self.upd_rect(x, y, inbox.offset_x(x) + iw, inbox.offset_y(y) + ih)
+        inbox.parent = self
 
     def create_input(self):
         if self.input_box is None:
@@ -184,10 +209,8 @@ class InputBox(Rect):
 
     def lc_motion(self, event):
         self.init()
-        self.parent.rect[0] += event.rel[0]
-        self.parent.rect[1] += event.rel[1]
-        self.rect[0] += event.rel[0]
-        self.rect[1] += event.rel[1]
+        self.parent.move(event.rel)
+        self.move(event.rel)
         self.parent.blit()
         self.blit()
 
@@ -273,6 +296,7 @@ class InputNumBox(InputBox):
                 self.blit()
                 blit_text(pygame.display.get_surface(), self.text, self.pos(), self.font, rect=self.rect)
                 pygame.display.flip()
+        return self.parent.quit
 
     def can_add(self):
         return len(self.text) < self.max_len + self.text.startswith('-')

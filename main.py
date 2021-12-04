@@ -46,7 +46,6 @@ def run():
     print(f'Ответ: ')
     for ans in scanline(a, x):
         print(ans, end=' ')
-    print(a)
 
 
 def main():
@@ -70,8 +69,7 @@ def main():
         tb0.blit()
         tb1.action()
         if tb1.quit:
-            running = False
-            continue
+            break
         tb2.action()
         if tb2.quit:
             running = False
