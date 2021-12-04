@@ -64,8 +64,10 @@ def main():
                 keyboard[event.unicode].down()
             if event.type == pygame.KEYUP and event.unicode in keyboard:
                 keyboard[event.unicode].up()
-        tb1 = TextBox('Введите первое число:', (200, 200), input_num=True)
+        tb0 = TextBox('Экран обновляется через 4 секунды после вывода суммы', (200, 200))
+        tb1 = TextBox('Введите первое число:', tb0.bottom_pos(), input_num=True)
         tb2 = TextBox('Введите второе число:', tb1.bottom_pos(), input_num=True)
+        tb0.blit()
         tb1.action()
         if tb1.quit:
             running = False

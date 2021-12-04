@@ -36,10 +36,10 @@ class Rect:
         self.rect = [x, y, w, h]
 
     def top_pos(self):
-        return self.rect[0], self.rect[1] - self.rect[3]
+        return self.rect[0], self.rect[1] - self.rect[3] - 20
 
     def bottom_pos(self):
-        return self.rect[0], self.rect[1] + self.rect[3]
+        return self.rect[0], self.rect[1] + self.rect[3] + 20
 
     def collide_point(self, x, y):
         return self.rect[0] <= x <= self.rect[0] + self.rect[2] \
@@ -134,7 +134,7 @@ class TextBox(Rect):
     def input_init(self):
         x, y, w, h = self.rect
         self.input_box.upd_pos(x + w + 10, y)
-        self.upd_rect(x, y, w + self.input_box.rect[2], h + self.input_box.rect[3])
+        self.upd_rect(x, y, w + self.input_box.rect[2], h)
         self.input_box.parent = self
 
     def create_input(self):
@@ -255,19 +255,24 @@ class InputNumBox(InputBox):
     @staticmethod
     def mul_by_minus(self, event):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_MINUS:
-            if len(self.text) > 0:
-                if self.text[0] == '-':
-                    self.text = self.text[1:]
-                else:
-                    self.text = '-' + self.text
+            if self.text.startswith('-'):
+                self.text = self.text[1:]
+            else:
+                self.text = '-' + self.text
 
     def action(self, change=False, font=None, event_func=None, using_lc_motion=False):
         if event_func is None:
             super(InputNumBox, self).action(change, font, InputNumBox.mul_by_minus, using_lc_motion)
         else:
             super(InputNumBox, self).action(change, font, event_func, using_lc_motion)
-        if self.text == '':
-            self.text = '0'
+        try:
+            int(self.text)
+        except ValueError:
+            if not self.parent.quit:
+                self.text = '0'
+                self.blit()
+                blit_text(pygame.display.get_surface(), self.text, self.pos(), self.font, rect=self.rect)
+                pygame.display.flip()
 
     def can_add(self):
         return len(self.text) < self.max_len + self.text.startswith('-')
