@@ -133,14 +133,11 @@ class TextButton(Rect):
 
 
 class TextBox(Rect):
-    def __init__(self, render_text, pos, input_str=False, input_num=False):
+    def __init__(self, text, pos, input_str=False, input_num=False):
         super().__init__()
-        rt = render_text
-        if isinstance(rt, str):
-            rt = pygame.font.Font(None, 48).render(rt, True, 'black')
-        self.text = rt
-        self.rect = list(rt.get_rect())
+        self.text = text
         self.upd_pos(pos)
+        self.rect = get_rect_blit_text(pygame.display.get_surface(), self.text, self.pos(), pygame.font.Font(None, 48))
         self.input_box = InputBox()
         if input_str:
             self.create_input()
@@ -150,7 +147,8 @@ class TextBox(Rect):
         self.have_input = input_str or input_num
 
     def blit(self, time=None):
-        pygame.display.get_surface().blit(self.text, self.rect)
+        pygame.draw.rect(pygame.display.get_surface(), (255, 255, 255), self.rect)
+        blit_text(pygame.display.get_surface(), self.text, self.pos(), pygame.font.Font(None, 48))
         if time is not None:
             pygame.display.flip()
             pygame.time.wait(time)
@@ -162,7 +160,7 @@ class TextBox(Rect):
     def action(self):
         if self.have_input:
             self.input_box.action()
-        return self.input_box.text
+            return self.input_box.text
 
     def input_init(self):
         x, y, w, h = self.rect
@@ -202,11 +200,11 @@ class InputBox(Rect):
         self.parent = parent
         self.font = pygame.font.Font(None, 48)
 
-    def blit(self, color=(9, 255, 255)):
+    def blit(self, color_rect=(9, 255, 255)):
         screen = pygame.display.get_surface()
         x0, y0 = self.pos()
         x1, y1 = x0 + self.size()[0] - 1, y0 + self.size()[1] - 1
-        pygame.draw.rect(screen, color, self.rect)
+        pygame.draw.rect(screen, color_rect, self.rect)
         pygame.draw.aalines(screen, 'black', True, [(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
 
     def add_key(self, key):
@@ -247,7 +245,7 @@ class InputBox(Rect):
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.text = ''
                     self.parent.quit = True
-                    running = False
+                    sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         running = False
@@ -280,7 +278,7 @@ class InputBox(Rect):
 class InputNumBox(InputBox):
     def __init__(self, pos=(0, 0), size=(0, 0), allow_keys='0123456789', parent=None):
         super(InputNumBox, self).__init__(pos, size, allow_keys, parent)
-        self.max_len = 7
+        self.max_len = 1
         self.rect[2] = (self.max_len + 2) * self.font.size('0')[0]
 
     @staticmethod
@@ -335,3 +333,36 @@ def blit_text(surface, text, _pos, font, color='black', allow_exceeding=True, wi
             x += word_width + space
         x = x0 + pos[0]  # Reset the x.
         y += word_height  # Start on new row.
+
+
+def get_rect_blit_text(surface, text, _pos, font, color='black', allow_exceeding=True, with_blit=False, rect=None):
+    lines = [word.split(' ') for word in text.splitlines()]  # 2D array where each row is a list of words.
+    space = font.size(' ')[0]  # The width of a space.
+    pos = _pos
+    x0, y0, width, height = surface.get_rect()
+    if rect is not None:
+        x0, y0, width, height = rect
+        pos = [0, 0]
+    max_x, max_y = x0 + width, y0 + height
+    x, y = x0 + pos[0], y0 + pos[1]
+    res_x = _pos[0]
+    res_y = _pos[1]
+    for line in lines:
+        word_width, word_height = 0, 0
+        for word in line:
+            word_surface = font.render(word, True, color)
+            word_width, word_height = word_surface.get_size()
+            if x + word_width >= max_x and x != x0 + pos[0]:
+                x = x0 + pos[0]  # Reset the x.
+                y += word_height  # Start on new row.
+            if not allow_exceeding:
+                if x + word_width > max_x or y + word_height > max_y:
+                    raise Exception('Text is so long')
+            if with_blit:
+                surface.blit(word_surface, (x, y), (0, 0, max_x - x, max_y - y))
+            res_x = max(x + word_width, res_x)
+            res_y = max(y + word_height, res_y)
+            x += word_width + space
+        x = x0 + pos[0]  # Reset the x.
+        y += word_height  # Start on new row.
+    return x0 + pos[0], y0 + pos[1], res_x - (x0 + pos[0]), res_y - (y0 + pos[1])
