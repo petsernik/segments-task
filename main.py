@@ -32,22 +32,69 @@ def scanline(a, x):
 
 
 def run():
+    def event_handler():
+        nonlocal run_screen
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE or event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                if run_screen == 0 or run_screen == 2:
+                    run_screen = 1
+                elif run_screen == 1:
+                    return True
+        return False
+
     def visual_scanline(a, x):
         """   scanline-algorithm
 
         :param a: ends of the segments
         :param x: question-points
         :return: answers for question-points"""
-        TextBox(
-            'Покрасим концы каждого отрезка: начало синим цветов, конец в красным, \n'
-            'а точки, для которых нужно выводить ответ, покрасим в жёлтым.',
-            (0, 0)).blit()
+
+        def pause(condition=True):
+            pygame.display.flip()
+            while condition and not event_handler():
+                pass
+
+        def draw_line():
+            pygame.draw.aalines(screen, 'black', True, [(0, height // 2), (width, height // 2)])
+
+        pos = (10, 10)
+        tb = TextBox('Покрасим концы каждого отрезка: начало синим цветом, конец красным.', pos)
+        tb.blit()
         s = []
-        pygame.draw.aalines(screen, 'black', True, [(0, height // 2), (width, height // 2)])
+        draw_line()
+        pause()
         for i in range(2 * len(a)):
             v = (a[i >> 1][i & 1], 1 - 2 * (i & 1), 0)
-            pygame.draw.circle(screen, 'blue', v[0]*50+width//2, 20)  # Here <<<
-        s = [(a[i >> 1][i & 1], 1 - 2 * (i & 1), 0) for i in range(2 * len(a))] + [(x[i], 0, i) for i in range(len(x))]
+            s.append(v)
+            color = 'blue' if v[1] == 1 else 'red'
+            TextBox(
+                f'{v[0]}',
+                (v[0] * 70 + width // 2, height // 2 - 25),
+                font_size=30,
+                centering=True
+            ).blit()
+            pygame.draw.circle(screen, color, (v[0] * 70 + width // 2, height // 2), 5)
+            pygame.display.flip()
+            pause(v[1] == -1)
+        tb.clear()
+        tb = TextBox('Точки, для которых нужно выводить ответ, покрасим жёлтым.', pos)
+        tb.blit()
+        pause()
+        for i in range(len(x)):
+            v = (x[i], 0, i)
+            s.append(v)
+            color = 'yellow'
+            TextBox(
+                f'{v[0]}',
+                (v[0] * 70 + width // 2, height // 2 - 25),
+                font_size=30,
+                centering=True
+            ).blit()
+            pygame.draw.circle(screen, color, (v[0] * 70 + width // 2, height // 2), 5)
+            pause()
+        tb.clear()
 
         s.sort(key=cmp_to_key(compare))
         ans = [0 for _ in x]
@@ -70,9 +117,19 @@ def run():
     def enter_segment():
         nonlocal segments
         screen.fill(background_color)
-        tb1 = TextBox('Введите начало:', pos, input_num=True)
-        tb2 = TextBox('Введите конец:', tb1.bottom_pos(), input_num=True)
-        segments.append((int(tb1.action()), int(tb2.action())))
+        tb1 = TextBox('Введите начало отрезка:', pos, input_num=True)
+        tb2 = TextBox('Введите конец отрезка:', tb1.bottom_pos(), input_num=True)
+        tb1.blit()
+        tb2.blit()
+        a, b = int(tb1.action()), int(tb2.action())
+        while a > b:
+            tb1.clear()
+            tb2.clear()
+            tb1.blit()
+            tb2.blit()
+            TextBox('Второе число должно быть не меньше первого!', tb1.top_pos()).blit()
+            a, b = int(tb1.action()), int(tb2.action())
+        segments.append((a, b))
         screen.fill(background_color)
 
     def enter_point():
@@ -87,29 +144,26 @@ def run():
         while a <= 0 and not tb.quit:
             TextBox('Число должно быть положительным!', tb.top_pos()).blit()
             a = int(tb.action())
-        tb.clear()
+        screen.fill(background_color)
         return a
 
     run_screen = 0
     while True:
-        screen.fill(background_color)
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE or event.type == pygame.QUIT:
-                sys.exit()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                if run_screen == 0:
-                    run_screen = 1
+        event_handler()
         if run_screen == 0:
+            screen.fill(background_color)
             tb1 = TextBox('Данное приложение визуалирует работу метода \" сканирующая прямая\" '
                           'для решения задачи \"скольким отрезкам принадлежит данная точка\" '
                           'с асимптотикой O((n+q)log(n+q)), '
                           'где n - количество отрезков, q - количество точек.',
                           (0, height // 7))
-            tb2 = TextBox('Нажмите клавишу Enter, чтобы начать вводить данные', tb1.bottom_pos())
+            tb2 = TextBox('Нажимайте клавишу ENTER, чтобы переходить на следующий слайд.\n'
+                          'ESC, чтобы выйти из приложения.', tb1.bottom_pos())
             tb1.blit()
             tb2.blit()
             pygame.display.flip()
         elif run_screen == 1:
+            screen.fill(background_color)
             seg = read_positive(TextBox('Введите количество отрезков:', pos, input_num=True))
             pt = read_positive(TextBox('Введите количество точек:', pos, input_num=True))
 
@@ -119,14 +173,12 @@ def run():
             for _ in range(pt):
                 enter_point()
 
-            tb_seg = TextBox(f'{segments}', (0, 0))
-            tb_pt = TextBox(f'{points}', tb_seg.bottom_pos())
-            tb_sl = TextBox(f'{scanline(segments, points)}', tb_pt.bottom_pos())
-            tb_seg.blit()
-            tb_pt.blit()
-            tb_sl.blit()
+            visual_scanline(segments, points)
+            TextBox('Алгоритм завершён! Нажмите ENTER, чтобы начать сначала.', (10, height - 50)).blit()
             pygame.display.flip()
-            pygame.time.wait(2000)
+            run_screen = 2
+        elif run_screen == 2:
+            pass
 
 
 def main():

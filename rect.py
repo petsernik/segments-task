@@ -133,22 +133,25 @@ class TextButton(Rect):
 
 
 class TextBox(Rect):
-    def __init__(self, text, pos, input_str=False, input_num=False):
+    def __init__(self, text, pos, input_str=False, input_num=False, font_size=48, centering=False):
         super().__init__()
         self.text = text
         self.upd_pos(pos)
         self.rect = get_rect_blit_text(pygame.display.get_surface(), self.text, self.pos(), pygame.font.Font(None, 48))
+        self.quit = False
+        self.have_input = input_str or input_num
+        self.font = pygame.font.Font(None, font_size)
+        self.font_size = font_size
         self.input_box = InputBox()
         if input_str:
             self.create_input()
         elif input_num:
             self.create_input_num()
-        self.quit = False
-        self.have_input = input_str or input_num
+        if centering:
+            self.rect[0] -= self.rect[2]//2
 
     def blit(self, time=None):
-        pygame.draw.rect(pygame.display.get_surface(), (255, 255, 255), self.rect)
-        blit_text(pygame.display.get_surface(), self.text, self.pos(), pygame.font.Font(None, 48))
+        blit_text(pygame.display.get_surface(), self.text, self.pos(), self.font)
         if time is not None:
             pygame.display.flip()
             pygame.time.wait(time)
@@ -173,12 +176,12 @@ class TextBox(Rect):
 
     def create_input(self):
         x, y, w, h = self.rect
-        self.input_box = InputBox(size=(w, h))
+        self.input_box = InputBox(size=(w, h), font_size=self.font_size)
         self.input_init()
 
     def create_input_num(self):
         x, y, w, h = self.rect
-        self.input_box = InputNumBox(size=(w, h))
+        self.input_box = InputNumBox(size=(w, h), font_size=self.font_size)
         self.input_init()
 
     def get_input(self):
@@ -192,13 +195,13 @@ class InputBox(Rect):
                             '1234567890'
                             '+-*/='
                             '<>'
-                            '~`!?\':;[]{}\"@#$%^&|\\/,. ', parent=None):
+                            '~`!?\':;[]{}\"@#$%^&|\\/,. ', parent=None, font_size=48):
         super().__init__([pos[0], pos[1], size[0], size[1]])
         self.allow_keys = set(allow_keys)
         self.text = ''
         self.max_len = 1000000
         self.parent = parent
-        self.font = pygame.font.Font(None, 48)
+        self.font = pygame.font.Font(None, font_size)
 
     def blit(self, color_rect=(9, 255, 255)):
         screen = pygame.display.get_surface()
@@ -276,8 +279,8 @@ class InputBox(Rect):
 
 
 class InputNumBox(InputBox):
-    def __init__(self, pos=(0, 0), size=(0, 0), allow_keys='0123456789', parent=None):
-        super(InputNumBox, self).__init__(pos, size, allow_keys, parent)
+    def __init__(self, pos=(0, 0), size=(0, 0), allow_keys='0123456789', parent=None, font_size=48):
+        super(InputNumBox, self).__init__(pos, size, allow_keys, parent, font_size=font_size)
         self.max_len = 1
         self.rect[2] = (self.max_len + 2) * self.font.size('0')[0]
 
@@ -365,4 +368,4 @@ def get_rect_blit_text(surface, text, _pos, font, color='black', allow_exceeding
             x += word_width + space
         x = x0 + pos[0]  # Reset the x.
         y += word_height  # Start on new row.
-    return x0 + pos[0], y0 + pos[1], res_x - (x0 + pos[0]), res_y - (y0 + pos[1])
+    return [x0 + pos[0], y0 + pos[1], res_x - (x0 + pos[0]), res_y - (y0 + pos[1])]
