@@ -150,8 +150,8 @@ class TextBox(Rect):
         if centering:
             self.rect[0] -= self.rect[2]//2
 
-    def blit(self, time=None):
-        blit_text(pygame.display.get_surface(), self.text, self.pos(), self.font)
+    def blit(self, time=None, color='black'):
+        blit_text(pygame.display.get_surface(), self.text, self.pos(), self.font, color)
         if time is not None:
             pygame.display.flip()
             pygame.time.wait(time)

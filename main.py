@@ -59,22 +59,39 @@ def run():
         def draw_line():
             pygame.draw.aalines(screen, 'black', True, [(0, height // 2), (width, height // 2)])
 
+        def clear():
+            screen.fill(background_color)
+
+        def draw_center_str(s, pos, color='black', font_size=30):
+            s = str(s)
+            TextBox(
+                s,
+                (pos[0], pos[1]),
+                font_size=font_size,
+                centering=True
+            ).blit(color=color)
+
         pos = (10, 10)
         tb = TextBox('Покрасим концы каждого отрезка: начало синим цветом, конец красным.', pos)
         tb.blit()
         s = []
         draw_line()
         pause()
+        val_dict = dict()
+        pos_dict = dict()
         for i in range(2 * len(a)):
             v = (a[i >> 1][i & 1], 1 - 2 * (i & 1), 0)
             s.append(v)
             color = 'blue' if v[1] == 1 else 'red'
-            TextBox(
-                f'{v[0]}',
-                (v[0] * 70 + width // 2, height // 2 - 25),
-                font_size=30,
-                centering=True
-            ).blit()
+            p = (v[0] * 70 + width // 2, height // 2 - 25)
+            if p not in val_dict:
+                draw_center_str(v[0], p)
+                val_dict[p] = v[0]
+            p = (v[0] * 70 + width // 2, height // 2 + 5)
+            while p in pos_dict:
+                p = (p[0], p[1] + 30)
+            draw_center_str(len(s), p, color)
+            pos_dict[p] = True
             pygame.draw.circle(screen, color, (v[0] * 70 + width // 2, height // 2), 5)
             pygame.display.flip()
             pause(v[1] == -1)
@@ -86,23 +103,97 @@ def run():
             v = (x[i], 0, i)
             s.append(v)
             color = 'yellow'
-            TextBox(
-                f'{v[0]}',
-                (v[0] * 70 + width // 2, height // 2 - 25),
-                font_size=30,
-                centering=True
-            ).blit()
+            p = (v[0] * 70 + width // 2, height // 2 - 25)
+            if p not in val_dict:
+                draw_center_str(v[0], p)
+                val_dict[p] = v[0]
+            p = (v[0] * 70 + width // 2, height // 2 + 5)
+            while p in pos_dict:
+                p = (p[0], p[1] + 30)
+            draw_center_str(len(s), p, color)
+            pos_dict[p] = True
             pygame.draw.circle(screen, color, (v[0] * 70 + width // 2, height // 2), 5)
             pause()
         tb.clear()
-
+        tb = TextBox('Отсортируем полученные точки по правилу: точка раньше в списке, '
+                     'если её позиция меньше, а при равенстве позиций: если её цвет меньше (синий<желтый<красный).',
+                     pos)
+        tb.blit()
+        pause()
+        clear()
+        tb = TextBox('Отсортировали! Это делается за O((n+q)log(n+q)).', pos)
+        tb.blit()
         s.sort(key=cmp_to_key(compare))
-        ans = [0 for _ in x]
+
+        draw_line()
+        for p, v in val_dict.items():
+            draw_center_str(v, p)
+        pos_dict.clear()
+        for i in range(len(s)):
+            v = s[i]
+            color = ''
+            if v[1] == -1:
+                color = 'red'
+            elif v[1] == 0:
+                color = 'yellow'
+            elif v[1] == 1:
+                color = 'blue'
+            pygame.draw.circle(screen, color, (v[0] * 70 + width // 2, height // 2), 5)
+            p = (v[0] * 70 + width // 2, height // 2 + 5)
+            while p in pos_dict:
+                p = (p[0], p[1] + 30)
+            pos_dict[p] = True
+            draw_center_str(i + 1, p, color)
+        pause()
+        tb.clear()
+        _x = -2 ** 32
+        ans = [-1 for _ in x]
         cur = 0
-        for event in s:
+        tb = TextBox('Теперь мы применим следующее соображение: количество отрезков, которым '
+                     'может принадлежать точка x, меняется только когда x проходит через начало/конец одного '
+                     f'из отрезков. Так давайте добавлять +1, когда '
+                     f'проходим через синюю точку, и -1, когда через красную, '
+                     f'когда мы проходим желтую точку (+0) выписываем для неё ответ: сумму всех +1 и -1 до'
+                     f'неё (на каждом шаге мы помним сумму).\n'
+                     f'Положим x={_x}, тогда сумма={cur}.', pos)
+        tb1 = TextBox('Входные точки: ' + str(x) + '\nТекущий ответ: ' + str(ans),
+                      tb.bottom_pos())
+        tb.blit()
+        tb1.blit()
+        pause()
+        pos_list = list(pos_dict.keys())
+        for i in range(len(s)):
+            v = s[i]
+            color = ''
+            if v[1] == -1:
+                color = 'red'
+            elif v[1] == 0:
+                color = 'yellow'
+            elif v[1] == 1:
+                color = 'blue'
+            pygame.draw.circle(screen, color, (v[0] * 70 + width // 2, height // 2), 5)
+            event = s[i]
+            tb.clear()
+            _x = event[0]
             cur += event[1]
             if event[1] == 0:
                 ans[event[2]] = cur
+            tb = TextBox('Теперь мы применим следующее соображение: количество отрезков, которым '
+                         'может принадлежать точка x, меняется только когда x проходит через начало/конец одного '
+                         f'из отрезков. Так давайте добавлять +1, когда '
+                         f'проходим через синюю точку, и -1, когда через красную, '
+                         f'когда мы проходим желтую точку (+0) выписываем для неё ответ: сумму всех +1 и -1 до'
+                         f'неё (на каждом шаге мы помним сумму).\n'
+                         f'Положим x={_x}, тогда сумма={cur}.', pos)
+            tb.blit()
+            v = pos_list[i]
+            pygame.draw.circle(screen, 'black', (v[0] - 15, v[1] + 10), 5)
+            tb1.clear()
+            tb1 = TextBox('Входные точки: ' + str(x) + '\nТекущий ответ: ' + str(ans),
+                          tb.bottom_pos())
+            tb1.blit()
+            pause()
+            pygame.draw.circle(screen, 'white', (v[0] - 15, v[1] + 10), 5)
         return ans
 
     pygame.init()
@@ -112,12 +203,11 @@ def run():
     screen.fill(background_color)
     segments = []
     points = []
-    pos = (width // 5, height // 4)
+    main_pos = (width // 5, height // 4)
 
     def enter_segment():
         nonlocal segments
-        screen.fill(background_color)
-        tb1 = TextBox('Введите начало отрезка:', pos, input_num=True)
+        tb1 = TextBox('Введите начало отрезка:', main_pos, input_num=True)
         tb2 = TextBox('Введите конец отрезка:', tb1.bottom_pos(), input_num=True)
         tb1.blit()
         tb2.blit()
@@ -134,8 +224,7 @@ def run():
 
     def enter_point():
         nonlocal points
-        screen.fill(background_color)
-        tb = TextBox('Введите точку:', pos, input_num=True)
+        tb = TextBox('Введите точку:', main_pos, input_num=True)
         points.append(int(tb.action()))
         screen.fill(background_color)
 
@@ -156,25 +245,33 @@ def run():
                           'для решения задачи \"скольким отрезкам принадлежит данная точка\" '
                           'с асимптотикой O((n+q)log(n+q)), '
                           'где n - количество отрезков, q - количество точек.',
-                          (0, height // 7))
-            tb2 = TextBox('Нажимайте клавишу ENTER, чтобы переходить на следующий слайд.\n'
+                          (0, height // 4))
+            tb2 = TextBox('Используйте клавишу ENTER, чтобы переходить на следующий слайд.\n'
                           'ESC, чтобы выйти из приложения.', tb1.bottom_pos())
             tb1.blit()
             tb2.blit()
             pygame.display.flip()
         elif run_screen == 1:
             screen.fill(background_color)
-            seg = read_positive(TextBox('Введите количество отрезков:', pos, input_num=True))
-            pt = read_positive(TextBox('Введите количество точек:', pos, input_num=True))
-
+            segments.clear()
+            points.clear()
+            seg = read_positive(TextBox('Введите количество отрезков:', main_pos, input_num=True))
+            screen.fill(background_color)
             for _ in range(seg):
+                tb = TextBox(f'{_ + 1}/{seg}', (0, 0))
+                tb.blit()
                 enter_segment()
-
+                tb.clear()
+            pt = read_positive(TextBox('Введите количество точек:', main_pos, input_num=True))
+            screen.fill(background_color)
             for _ in range(pt):
+                tb = TextBox(f'{_ + 1}/{pt}', (0, 0))
+                tb.blit()
                 enter_point()
-
+                tb.clear()
             visual_scanline(segments, points)
-            TextBox('Алгоритм завершён! Нажмите ENTER, чтобы начать сначала.', (10, height - 50)).blit()
+            TextBox('Алгоритм завершён! Нажмите ENTER, чтобы ввести новые данные.\n'
+                    'ESC, чтобы выйти из приложения.', (10, height - 100)).blit()
             pygame.display.flip()
             run_screen = 2
         elif run_screen == 2:
